@@ -7,9 +7,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Nyla Cherry">
-<meta name="dcterms.date" content="2025-10-09">
+<meta name="dcterms.date" content="2025-10-15">
 
-<title>It’s Almost Fall Break – Sports Data Class Blog</title>
+<title>Changes With the Big Ten’s Offense – Sports Data Class Blog</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -151,7 +151,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <header id="title-block-header" class="quarto-title-block default page-columns page-full">
   <div class="quarto-title-banner page-columns page-full">
     <div class="quarto-title column-body">
-      <h1 class="title">It’s Almost Fall Break</h1>
+      <h1 class="title">Changes With the Big Ten’s Offense</h1>
                       </div>
   </div>
     
@@ -168,7 +168,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <div>
       <div class="quarto-title-meta-heading">Published</div>
       <div class="quarto-title-meta-contents">
-        <p class="date">October 9, 2025</p>
+        <p class="date">October 15, 2025</p>
       </div>
     </div>
     
@@ -187,6 +187,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 
+<section id="headline-big-ten-teams-are-running-more-plays-per-game-after-the-ncaas-clock-rule-change" class="level3">
+<h3 class="anchored" data-anchor-id="headline-big-ten-teams-are-running-more-plays-per-game-after-the-ncaas-clock-rule-change"><strong>Headline: Big Ten Teams Are Running More Plays Per Game After the NCAA’s Clock Rule Change</strong></h3>
+<p>The NCAA’s 2024 rule change to keep the clock running after first downs was designed to speed up games. To see whether that actually reduced the number of offensive plays, I compared the average number of plays per game for each Big Ten team across the 2024-25 and 2025-26 seasons.</p>
+<p>First I loaded the tidyverse package and imported game-by-game statistics for the 2024 and 2025 college football seasons from two CSV files.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -204,9 +208,168 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 ✖ dplyr::lag()    masks stats::lag()
 ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</code></pre>
 </div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>season24 <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"https://dwillis.github.io/sports-data-files/footballlogs24.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>Rows: 1717 Columns: 79
+── Column specification ────────────────────────────────────────────────────────
+Delimiter: ","
+chr  (11): Location, Opponent, Result, OT, Bowl.x, TeamURL, Outcome, Bowl.y,...
+dbl  (64): Rk, Gtm, Points, PointsOpp, PassCmp, PassAtt, PassPct, PassYds, P...
+lgl   (3): Score, TeamScore, OpponentScore
+date  (1): Date
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
 </div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>season25 <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"https://dwillis.github.io/sports-data-files/footballlogs25.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>Rows: 711 Columns: 77
+── Column specification ────────────────────────────────────────────────────────
+Delimiter: ","
+chr   (9): Location, Opponent, Result, OT, TeamURL, Outcome, Team, Conferenc...
+dbl  (64): Rk, Gtm, Points, PointsOpp, PassCmp, PassAtt, PassPct, PassYds, P...
+lgl   (3): Score, TeamScore, OpponentScore
+date  (1): Date
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+</div>
+</div>
+<p>To focus the analysis on the Big Ten, I created a list of all 18 current conference teams. Then, I filtered the 2024 and 2025 season data to include only games played by Big Ten teams.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>big_ten_teams <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Oregon"</span>, <span class="st">"Indiana"</span>, <span class="st">"Penn State"</span>, <span class="st">"Ohio State"</span>, <span class="st">"Illinois"</span>, <span class="st">"Iowa"</span>,  <span class="st">"Michigan"</span>,  <span class="st">"Minnesota"</span>, <span class="st">"Rutgers"</span>, <span class="st">"USC"</span>, <span class="st">"Washington"</span>, <span class="st">"Nebraska"</span>, <span class="st">"Michigan State"</span>, <span class="st">"UCLA"</span>, <span class="st">"Wisconsin"</span>, <span class="st">"Northwestern"</span>,<span class="st">"Maryland"</span>, <span class="st">"Purdue"</span>)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>season24 <span class="sc">%&gt;%</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Team <span class="sc">%in%</span> big_ten_teams)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 235 × 79
+      Rk   Gtm Date       Location Opponent       Result Points PointsOpp OT   
+   &lt;dbl&gt; &lt;dbl&gt; &lt;date&gt;     &lt;chr&gt;    &lt;chr&gt;          &lt;chr&gt;   &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt;
+ 1     1     1 2024-08-31 &lt;NA&gt;     Idaho          W          24        14 &lt;NA&gt; 
+ 2     2     2 2024-09-07 &lt;NA&gt;     Boise State    W          37        34 &lt;NA&gt; 
+ 3     3     3 2024-09-14 @        Oregon State   W          49        14 &lt;NA&gt; 
+ 4     4     4 2024-09-28 @        UCLA           W          34        13 &lt;NA&gt; 
+ 5     5     5 2024-10-04 &lt;NA&gt;     Michigan State W          31        10 &lt;NA&gt; 
+ 6     6     6 2024-10-12 &lt;NA&gt;     Ohio State     W          32        31 &lt;NA&gt; 
+ 7     7     7 2024-10-18 @        Purdue         W          35         0 &lt;NA&gt; 
+ 8     8     8 2024-10-26 &lt;NA&gt;     Illinois       W          38         9 &lt;NA&gt; 
+ 9     9     9 2024-11-02 @        Michigan       W          38        17 &lt;NA&gt; 
+10    10    10 2024-11-09 &lt;NA&gt;     Maryland       W          39        18 &lt;NA&gt; 
+# ℹ 225 more rows
+# ℹ 70 more variables: PassCmp &lt;dbl&gt;, PassAtt &lt;dbl&gt;, PassPct &lt;dbl&gt;,
+#   PassYds &lt;dbl&gt;, PassTD &lt;dbl&gt;, PassYA &lt;dbl&gt;, PassAYA &lt;dbl&gt;, PassRate &lt;dbl&gt;,
+#   RushAtt &lt;dbl&gt;, RushYds &lt;dbl&gt;, RushYA &lt;dbl&gt;, RushTD &lt;dbl&gt;, TotalPlays &lt;dbl&gt;,
+#   TotalYds &lt;dbl&gt;, TotalAvg &lt;dbl&gt;, FGA &lt;dbl&gt;, FGM &lt;dbl&gt;, XPA &lt;dbl&gt;, XPM &lt;dbl&gt;,
+#   Punt &lt;dbl&gt;, PuntYds &lt;dbl&gt;, FirstDownPass &lt;dbl&gt;, FirstDownRush &lt;dbl&gt;,
+#   FirstDownPen &lt;dbl&gt;, FirstDown &lt;dbl&gt;, Penalties &lt;dbl&gt;, PenaltyYds &lt;dbl&gt;, …</code></pre>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>season25 <span class="sc">%&gt;%</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Team <span class="sc">%in%</span> big_ten_teams)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 91 × 77
+      Rk   Gtm Date       Location Opponent       Result Points PointsOpp OT   
+   &lt;dbl&gt; &lt;dbl&gt; &lt;date&gt;     &lt;chr&gt;    &lt;chr&gt;          &lt;chr&gt;   &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt;
+ 1     1     1 2025-08-30 &lt;NA&gt;     Old Dominion   W          27        14 &lt;NA&gt; 
+ 2     2     2 2025-09-06 &lt;NA&gt;     Kennesaw State W          56         9 &lt;NA&gt; 
+ 3     3     3 2025-09-12 &lt;NA&gt;     Indiana St.    W          73         0 &lt;NA&gt; 
+ 4     4     4 2025-09-20 &lt;NA&gt;     Illinois       W          63        10 &lt;NA&gt; 
+ 5     5     5 2025-09-27 @        Iowa           W          20        15 &lt;NA&gt; 
+ 6     1     1 2025-08-30 &lt;NA&gt;     Texas          W          14         7 &lt;NA&gt; 
+ 7     2     2 2025-09-06 &lt;NA&gt;     Grambling      W          70         0 &lt;NA&gt; 
+ 8     3     3 2025-09-13 &lt;NA&gt;     Ohio           W          37         9 &lt;NA&gt; 
+ 9     4     4 2025-09-27 @        Washington     W          24         6 &lt;NA&gt; 
+10     5     5 2025-10-04 &lt;NA&gt;     Minnesota      W          42         3 &lt;NA&gt; 
+# ℹ 81 more rows
+# ℹ 68 more variables: PassCmp &lt;dbl&gt;, PassAtt &lt;dbl&gt;, PassPct &lt;dbl&gt;,
+#   PassYds &lt;dbl&gt;, PassTD &lt;dbl&gt;, PassYA &lt;dbl&gt;, PassAYA &lt;dbl&gt;, PassRate &lt;dbl&gt;,
+#   RushAtt &lt;dbl&gt;, RushYds &lt;dbl&gt;, RushYA &lt;dbl&gt;, RushTD &lt;dbl&gt;, TotalPlays &lt;dbl&gt;,
+#   TotalYds &lt;dbl&gt;, TotalAvg &lt;dbl&gt;, FGA &lt;dbl&gt;, FGM &lt;dbl&gt;, XPA &lt;dbl&gt;, XPM &lt;dbl&gt;,
+#   Punt &lt;dbl&gt;, PuntYds &lt;dbl&gt;, FirstDownPass &lt;dbl&gt;, FirstDownRush &lt;dbl&gt;,
+#   FirstDownPen &lt;dbl&gt;, FirstDown &lt;dbl&gt;, Penalties &lt;dbl&gt;, PenaltyYds &lt;dbl&gt;, …</code></pre>
+</div>
+</div>
+<p>Next, I calculated the average number of offensive plays per game for each Big Ten team in both the 2024 and 2025 seasons. This involved grouping the filtered data by team and taking the mean of the total plays, while making sure to ignore any missing values.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>avg_plays_24 <span class="ot">&lt;-</span> season24 <span class="sc">%&gt;%</span> </span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Team <span class="sc">%in%</span> big_ten_teams) <span class="sc">%&gt;%</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Team) <span class="sc">%&gt;%</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">avg_plays =</span> <span class="fu">mean</span>(TotalPlays, <span class="at">na.rm =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>avg_plays_25 <span class="ot">&lt;-</span> season25 <span class="sc">%&gt;%</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Team <span class="sc">%in%</span> big_ten_teams) <span class="sc">%&gt;%</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Team) <span class="sc">%&gt;%</span></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">avg_plays =</span> <span class="fu">mean</span>(TotalPlays, <span class="at">na.rm =</span> <span class="cn">TRUE</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>In this step, I created a horizontal bar chart to show the average number of offensive plays per game for each Big Ten team in the 2024 and 2025 seasons. By reordering the teams based on their average plays, I made it easier to compare teams at a glance. Flipping the coordinates with <code>coord_flip()</code> helped keep team names readable, especially with a long list of 18 teams. I also applied a clean theme and added axis labels and a title to make the chart easier to interpret. Overall, this visualization gives a clear snapshot of offensive tempo across the conference in both seasons.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span> </span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> avg_plays_24, </span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">reorder</span>(Team, avg_plays),</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">weight =</span> avg_plays),</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> <span class="st">"steelblue"</span>) <span class="sc">+</span> </span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span>comma) <span class="sc">+</span> </span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Big Ten Teams’ Average Offensive Plays Per Game (2024 Season)"</span>,</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Team"</span>, </span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Average Plays"</span>) <span class="sc">+</span> </span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_light</span>() <span class="sc">+</span> </span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_flip</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span> </span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> avg_plays_25, </span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">reorder</span>(Team, avg_plays),</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">weight =</span> avg_plays),</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> <span class="st">"steelblue"</span>) <span class="sc">+</span> </span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span>comma) <span class="sc">+</span> </span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Big Ten Teams’ Average Offensive Plays Per Game (2025 Season)"</span>,</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Team"</span>, </span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Average Plays"</span>) <span class="sc">+</span> </span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_light</span>() <span class="sc">+</span> </span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_flip</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Big Ten teams are running slightly more offensive plays on average in the 2025 season compared to 2024, indicating a modest increase in tempo across the conference. Several teams have seen significant changes in their rankings for average plays per game. Most notably, Purdue jumped from last place in 2024 to third in 2025, while Indiana climbed from ninth to second, and Rutgers moved into the top spot after finishing second the previous year. On the other hand, Maryland, which led the conference in 2024, dropped to fifth, and Ohio State fell from 14th to last place. Other teams like USC, Penn State, and Wisconsin also dropped in the rankings, while Nebraska and Oregon remained consistently near the top. Overall, the data suggests a shift in offensive strategies for some programs, with a few accelerating their pace of play while others have slowed down.</p>
 
 
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
